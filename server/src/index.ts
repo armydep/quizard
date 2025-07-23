@@ -3,6 +3,7 @@
 import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
+import cookieParser from 'cookie-parser';
 import questionsRouter from './routes/questions';
 import usersRouter from './routes/users';
 
@@ -10,6 +11,7 @@ import usersRouter from './routes/users';
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
 
 // Connect to MongoDB
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/quizard';

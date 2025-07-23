@@ -1,17 +1,31 @@
 import { Request, Response } from 'express';
 import Question from '../models/Question';
-
+import { randomUUID } from 'crypto';
+import { QuestionsService } from '../services/questionsService';
 export async function getRandomQuestion(req: Request, res: Response) {
-  res.setHeader('auth1', (req as any).isAuthenticated ? 'you are authenticated' : 'not authenticated');
-  const count = await Question.countDocuments();
-  if (count === 0) return res.json({ question: 'No questions available.' });
-  const random = Math.floor(Math.random() * count);
-  const q = await Question.findOne().skip(random);
-  res.json({ question: q?.question || 'No question found.' });
+  res.set('auth1', (req as any).isAuthenticated ? 'you are authenticated' : 'not authenticated');
+  // Inject tracking_user_id cookie for anonymous users
+  if (!(req as any).isAuthenticated) {
+    let trackingId = (req as any).cookies?.tracking_user_id;
+    if (!trackingId) {
+      trackingId = randomUUID();
+      res.cookie('tracking_user_id', trackingId, { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 365 });
+    }
+  }
+  const result = await QuestionsService.getRandomQuestion();
+  res.json(result);
 }
 
 export async function getQuestionByKeyword(req: Request, res: Response) {
-  res.setHeader('auth1', (req as any).isAuthenticated ? 'you are authenticated' : 'not authenticated');
+  res.set('auth1', (req as any).isAuthenticated ? 'you are authenticated' : 'not authenticated');
+  // Inject tracking_user_id cookie for anonymous users
+  if (!(req as any).isAuthenticated) {
+    let trackingId = (req as any).cookies?.tracking_user_id;
+    if (!trackingId) {
+      trackingId = randomUUID();
+      res.cookie('tracking_user_id', trackingId, { httpOnly: true, maxAge: 1000 * 60 * 60 * 24 * 365 });
+    }
+  }
   const { keywords } = req.body;
   if (!Array.isArray(keywords)) {
     return res.status(400).json({ error: 'Keywords must be an array.' });
@@ -25,7 +39,7 @@ export async function getQuestionByKeyword(req: Request, res: Response) {
 }
 
 export async function submitAnswer(req: Request, res: Response) {
-  res.setHeader('auth1', (req as any).isAuthenticated ? 'you are authenticated' : 'not authenticated');
+  res.set('auth1', (req as any).isAuthenticated ? 'you are authenticated' : 'not authenticated');
   const { question, answer } = req.body;
   if (!question || !answer) {
     return res.status(400).json({ error: 'Question and answer are required.' });
