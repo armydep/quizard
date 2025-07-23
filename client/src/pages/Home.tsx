@@ -9,6 +9,8 @@ export default function Home() {
     setAnswer,
     fetchRandomQuestion,
     fetchQuestionByKeywords,
+    submitAnswer,
+    submitStatus,
   } = useQuestion();
 
   return (
@@ -36,7 +38,19 @@ export default function Home() {
             value={answer}
             onChange={e => setAnswer(e.target.value)}
             style={{ width: '100%', minHeight: 80, padding: '0.5rem' }}
+            disabled={submitStatus === 'correct'}
           />
+          <div style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <button
+              onClick={submitAnswer}
+              disabled={!answer || submitStatus === 'correct'}
+              style={{ padding: '0.5rem 1.5rem' }}
+            >
+              Submit
+            </button>
+            {submitStatus === 'correct' && <span style={{ color: 'green' }}>Correct</span>}
+            {submitStatus === 'wrong' && <span style={{ color: 'red' }}>Wrong</span>}
+          </div>
         </div>
       )}
     </div>

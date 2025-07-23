@@ -16,6 +16,7 @@ cd ..
 cd server/
 npm init -y
 npm install express cors
+npm install --save-dev @types/cors 
 cd ..
 npm install -D concurrently
 npm install

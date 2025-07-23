@@ -5,8 +5,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.get('/api/hello', (_req, res) => {
-  res.json({ message: 'Hello from Express + TypeScript!' });
+const PORT = 5000;
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
 });
 
 // Dummy questions for demonstration
@@ -37,7 +38,19 @@ app.post('/api/question-by-keyword', (req, res) => {
   }
 });
 
-const PORT = 5000;
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+
+// POST /api/submit-answer
+app.post('/api/submit-answer', (req, res) => {
+  const { question, answer } = req.body;
+  if (!question || !answer) {
+    return res.status(400).json({ error: 'Question and answer are required.' });
+  }
+  // Find the question object
+  const found = questions.find(q => q.question === question);
+  if (!found) {
+    return res.json({ correct: false });
+  }
+  // Simple answer check: for demo, accept if answer contains any keyword
+  const isCorrect = found.keywords.some(k => answer.toLowerCase().includes(k.toLowerCase()));
+  res.json({ correct: isCorrect });
 });
