@@ -3,6 +3,9 @@ import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import User from './pages/User';
 import Settings from './pages/Settings';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import ProtectedRoute from './pages/ProtectedRoute';
 
 export default function App() {
   return (
@@ -20,8 +23,10 @@ export default function App() {
         <main style={{ flex: 1, padding: '2rem', background: '#f7f7f7', width: '100%' }}>
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/user" element={<User />} />
-            <Route path="/settings" element={<Settings />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/user" element={<ProtectedRoute><User /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           </Routes>
         </main>
       </div>

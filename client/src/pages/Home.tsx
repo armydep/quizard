@@ -1,5 +1,9 @@
 import { useQuestion } from '../hooks/useQuestion';
 
+function getToken() {
+  return localStorage.getItem('jwt');
+}
+
 export default function Home() {
   const {
     question,
@@ -17,8 +21,8 @@ export default function Home() {
     <div style={{ maxWidth: 600, margin: '2rem auto', padding: '2rem', background: '#fff', borderRadius: 8 }}>
       <h2>Quizard</h2>
       <div style={{ marginBottom: '1rem' }}>
-        <button onClick={fetchRandomQuestion} style={{ marginRight: '1rem' }}>Random Question</button>
-        <button onClick={fetchQuestionByKeywords}>Question by Keyword</button>
+        <button onClick={() => fetchRandomQuestion(getToken() ?? undefined)} style={{ marginRight: '1rem' }}>Random Question</button>
+        <button onClick={() => fetchQuestionByKeywords(getToken() ?? undefined)}>Question by Keyword</button>
       </div>
       <div style={{ marginBottom: '1rem' }}>
         <input
@@ -42,7 +46,10 @@ export default function Home() {
           />
           <div style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <button
-              onClick={submitAnswer}
+              onClick={() => {
+                // Optionally pass token to submitAnswer if needed
+                submitAnswer(getToken() ?? undefined);
+              }}
               disabled={!answer || submitStatus === 'correct'}
               style={{ padding: '0.5rem 1.5rem' }}
             >
