@@ -24,6 +24,7 @@ export default function Navbar() {
             color: '#fff',
             textDecoration: location.pathname === item.path ? 'underline' : 'none'
           }}
+          aria-current={location.pathname === item.path ? 'page' : undefined}
         >
           {item.label}
         </Link>
