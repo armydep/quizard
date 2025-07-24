@@ -12,7 +12,6 @@ export default function Home() {
     setKeywords,
     setAnswer,
     fetchRandomQuestion,
-    fetchQuestionByKeywords,
     submitAnswer,
     submitStatus,
     tries,
@@ -26,10 +25,8 @@ export default function Home() {
 
   return (
     <div style={{ maxWidth: 600, margin: '2rem auto', padding: '2rem', background: '#fff', borderRadius: 8 }}>
-      <h2>Quizard</h2>
       <div style={{ marginBottom: '1rem' }}>
         <button onClick={() => fetchRandomQuestion(getToken() ?? undefined)} style={{ marginRight: '1rem' }}>Random Question</button>
-        <button onClick={() => fetchQuestionByKeywords(getToken() ?? undefined)}>Question by Keyword</button>
       </div>
       <div style={{ marginBottom: '1rem' }}>
         <input
