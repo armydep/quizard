@@ -13,6 +13,12 @@ export async function getRandomQuestion(req: Request, res: Response) {
     }
   }
   const result = await QuestionsService.getRandomQuestion();
+  // Store the question in MongoDB
+  try {
+    await Question.create(result);
+  } catch (err) {
+    console.error('Error saving question to MongoDB:', err);
+  }
   res.json(result);
 }
 

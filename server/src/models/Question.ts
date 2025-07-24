@@ -1,13 +1,11 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IQuestion extends Document {
-  question: string;
-  keywords: string[];
+  Question: string;
 }
 
 const QuestionSchema: Schema = new Schema({
-  question: { type: String, required: true },
-  keywords: { type: [String], required: true },
-});
+  Question: { type: String }
+}, { strict: false });
 
 export default mongoose.model<IQuestion>('Question', QuestionSchema);

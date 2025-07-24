@@ -13,7 +13,7 @@ export function useQuestion() {
     }
     const res = await fetch('/api/random-question', { headers });
     const data = await res.json();
-    setQuestion(data.question);
+    setQuestion(data.Question);
     setAnswer('');
     setSubmitStatus('idle');
   };
