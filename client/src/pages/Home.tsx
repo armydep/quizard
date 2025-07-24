@@ -15,6 +15,10 @@ export default function Home() {
     fetchQuestionByKeywords,
     submitAnswer,
     submitStatus,
+    tries,
+    time,
+    revealedAnswer,
+    showAnswer,
   } = useQuestion();
 
   return (
@@ -47,7 +51,6 @@ export default function Home() {
           <div style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <button
               onClick={() => {
-                // Optionally pass token to submitAnswer if needed
                 submitAnswer(getToken() ?? undefined);
               }}
               disabled={!answer || submitStatus === 'correct'}
@@ -55,9 +58,31 @@ export default function Home() {
             >
               Submit
             </button>
-            {submitStatus === 'correct' && <span style={{ color: 'green' }}>Correct</span>}
+            <button
+              onClick={() => showAnswer(getToken() ?? undefined)}
+              style={{ padding: '0.5rem 1.5rem' }}
+              disabled={!!revealedAnswer}
+            >
+              Show Answer
+            </button>
+            {submitStatus === 'correct' && (
+              <span style={{ color: 'green' }}>
+                Correct
+                {typeof tries === 'number' && (
+                  <span style={{ marginLeft: 10 }}>| Tries: {tries}</span>
+                )}
+                {typeof time === 'number' && (
+                  <span style={{ marginLeft: 10 }}>| Time: {time}s</span>
+                )}
+              </span>
+            )}
             {submitStatus === 'wrong' && <span style={{ color: 'red' }}>Wrong</span>}
           </div>
+          {revealedAnswer && (
+            <div style={{ marginTop: '1rem', color: '#333', background: '#f0f0f0', padding: '0.75rem', borderRadius: 4 }}>
+              <strong>Answer:</strong> {revealedAnswer}
+            </div>
+          )}
         </div>
       )}
     </div>

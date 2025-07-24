@@ -6,6 +6,23 @@ export function useQuestion() {
   const [keywords, setKeywords] = useState('');
   const [answer, setAnswer] = useState('');
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'correct' | 'wrong'>('idle');
+  const [revealedAnswer, setRevealedAnswer] = useState<string | null>(null);
+  const showAnswer = async (token?: string) => {
+    if (!questionId) return;
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    const res = await fetch('/api/show-answer', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ questionId }),
+    });
+    const data = await res.json();
+    setRevealedAnswer(data.answer || null);
+  };
+  const [tries, setTries] = useState<number | null>(null);
+  const [time, setTime] = useState<number | null>(null);
 
   const fetchRandomQuestion = async (token?: string) => {
     const headers: Record<string, string> = {};
@@ -18,6 +35,7 @@ export function useQuestion() {
     setQuestionId(data.QuestionId);
     setAnswer('');
     setSubmitStatus('idle');
+    setRevealedAnswer(null);
   };
 
   const fetchQuestionByKeywords = async (token?: string) => {
@@ -34,6 +52,7 @@ export function useQuestion() {
     setQuestion(data.question);
     setAnswer('');
     setSubmitStatus('idle');
+    setRevealedAnswer(null);
   };
 
   const submitAnswer = async (token?: string) => {
@@ -49,6 +68,13 @@ export function useQuestion() {
     });
     const data = await res.json();
     setSubmitStatus(data.correct ? 'correct' : 'wrong');
+    if (data.correct) {
+      setTries(typeof data.tries === 'number' ? data.tries : null);
+      setTime(typeof data.time === 'number' ? data.time : null);
+    } else {
+      setTries(null);
+      setTime(null);
+    }
   };
 
   const logout = () => {
@@ -65,6 +91,10 @@ export function useQuestion() {
     fetchQuestionByKeywords,
     submitAnswer,
     submitStatus,
+    tries,
+    time,
+    revealedAnswer,
+    showAnswer,
     logout,
   };
 }

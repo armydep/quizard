@@ -104,8 +104,28 @@ const dbQuestion = await Question.findOne({ QuestionId: questionId });
 
   // Check answer
   const isCorrect =  (answer.trim().toLowerCase() === (dbQuestion.Answer || '').trim().toLowerCase());
-    dbUserQuestion.iscorrect = isCorrect;
-    dbUserQuestion.endtime = new Date();
-    await dbUserQuestion.save();
-    return res.json({ correct: isCorrect });
+  dbUserQuestion.iscorrect = isCorrect;
+  dbUserQuestion.endtime = new Date();
+  await dbUserQuestion.save();
+  if (isCorrect) {
+    let timeTaken = 0;
+    if (dbUserQuestion.starttime && dbUserQuestion.endtime) {
+      timeTaken = Math.round((dbUserQuestion.endtime.getTime() - dbUserQuestion.starttime.getTime()) / 1000);
+    }
+    return res.json({ correct: true, time: timeTaken, tries: dbUserQuestion.tries });
+  } else {
+    return res.json({ correct: false });
+  }
+}
+
+export async function showAnswer(req: Request, res: Response) {
+  const { questionId } = req.body;
+  if (!questionId) {
+    return res.status(400).json({ error: 'questionId is required.' });
+  }
+  const dbQuestion = await Question.findOne({ QuestionId: questionId });
+  if (!dbQuestion) {
+    return res.status(404).json({ error: 'Question not found.' });
+  }
+  return res.json({ answer: dbQuestion.Answer || '' });
 }
