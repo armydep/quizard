@@ -9,7 +9,7 @@ export class QuestionsService {
     if (count === 0) return { question: 'No questions available.' };
     const random = Math.floor(Math.random() * count);
     const q = await Question.findOne().skip(random);
-    return { question: q?.question || 'No question found.' };
+    return { question: q?.Question || 'No question found.' };
   }
   
   static async getRandomQuestion(): Promise<any> {

@@ -1,7 +1,9 @@
 import { Request, Response } from 'express';
 import Question from '../models/Question';
+import UsersQuestions from '../models/UsersQuestions';
 import { randomUUID } from 'crypto';
 import { QuestionsService } from '../services/questionsService';
+
 export async function getRandomQuestion(req: Request, res: Response) {
   res.set('auth1', (req as any).isAuthenticated ? 'you are authenticated' : 'not authenticated');
   // Inject tracking_user_id cookie for anonymous users
@@ -14,12 +16,30 @@ export async function getRandomQuestion(req: Request, res: Response) {
   }
   const result = await QuestionsService.getRandomQuestion();
   // Store the question in MongoDB
+  let savedQuestion = null;
   try {
-    await Question.create(result);
+    savedQuestion = await Question.create(result);
   } catch (err) {
     console.error('Error saving question to MongoDB:', err);
+    return res.status(500).json({ error: 'Error saving question to MongoDB:', err });
   }
-  res.json(result);
+
+  // Store UsersQuestions entry
+  try {
+    const userId = (req as any).isAuthenticated ? (req as any).user?._id : undefined;
+    const trackId = !userId ? (req as any).cookies?.tracking_user_id : undefined;
+    await UsersQuestions.create({
+      userId,
+      trackId,
+      questionId: savedQuestion.QuestionId,
+      starttime: new Date(),
+    });
+    res.json(result);
+  } catch (err) {
+    console.error('Error saving UsersQuestions to MongoDB:', err);
+    return res.status(500).json({ error: 'Error saving UsersQuestions to MongoDB:', err });
+  }
+  
 }
 
 export async function getQuestionByKeyword(req: Request, res: Response) {
@@ -38,7 +58,7 @@ export async function getQuestionByKeyword(req: Request, res: Response) {
   }
   const q = await Question.findOne({ keywords: { $in: keywords } });
   if (q) {
-    res.json({ question: q.question });
+    res.json({ question: q.Question });
   } else {
     res.json({ question: 'No question found for those keywords.' });
   }
@@ -46,15 +66,46 @@ export async function getQuestionByKeyword(req: Request, res: Response) {
 
 export async function submitAnswer(req: Request, res: Response) {
   res.set('auth1', (req as any).isAuthenticated ? 'you are authenticated' : 'not authenticated');
-  const { question, answer } = req.body;
-  if (!question || !answer) {
-    return res.status(400).json({ error: 'Question and answer are required.' });
+  const { questionId, answer } = req.body;
+  const userId = (req as any).isAuthenticated ? (req as any).user?._id : undefined;
+  const trackId = !userId ? (req as any).cookies?.tracking_user_id : undefined;
+
+  if (!questionId || !answer) {
+    return res.status(400).json({ error: 'questionId and answer are required.' });
   }
-  const q = await Question.findOne({ question });
-  if (!q) {
-    return res.json({ correct: false });
+
+  // Find the question in DB by questionId field
+  console.log('QuestionId [' + questionId + ']');
+const dbQuestion = await Question.findOne({ QuestionId: questionId });
+  if (!dbQuestion) {
+    return res.status(404).json({ error: 'Question not found.' });
   }
-  // Accept if answer contains any keyword
-  const isCorrect = q.keywords.some(k => answer.toLowerCase().includes(k.toLowerCase()));
-  res.json({ correct: isCorrect });
+
+  // Find the UsersQuestions entry
+  const userQuestionQuery: any = { questionId };
+  if (userId) userQuestionQuery.userId = userId;
+  else userQuestionQuery.trackId = trackId;
+
+  let dbUserQuestion = await UsersQuestions.findOne(userQuestionQuery);
+
+  if (!dbUserQuestion) {
+    // If not found, create a new entry
+    dbUserQuestion = new UsersQuestions({
+      userId,
+      trackId,
+      questionId,
+      starttime: new Date(),
+      tries: 0
+    });
+  }
+
+  // Increment tries
+  dbUserQuestion.tries = (dbUserQuestion.tries || 0) + 1;
+
+  // Check answer
+  const isCorrect =  (answer.trim().toLowerCase() === (dbQuestion.Answer || '').trim().toLowerCase());
+    dbUserQuestion.iscorrect = isCorrect;
+    dbUserQuestion.endtime = new Date();
+    await dbUserQuestion.save();
+    return res.json({ correct: isCorrect });
 }

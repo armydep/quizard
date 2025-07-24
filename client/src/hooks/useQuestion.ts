@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 export function useQuestion() {
   const [question, setQuestion] = useState('');
+  const [questionId, setQuestionId] = useState('');
   const [keywords, setKeywords] = useState('');
   const [answer, setAnswer] = useState('');
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'correct' | 'wrong'>('idle');
@@ -14,6 +15,7 @@ export function useQuestion() {
     const res = await fetch('/api/random-question', { headers });
     const data = await res.json();
     setQuestion(data.Question);
+    setQuestionId(data.QuestionId);
     setAnswer('');
     setSubmitStatus('idle');
   };
@@ -43,7 +45,7 @@ export function useQuestion() {
     const res = await fetch('/api/submit-answer', {
       method: 'POST',
       headers,
-      body: JSON.stringify({ question, answer }),
+      body: JSON.stringify({ questionId, answer }),
     });
     const data = await res.json();
     setSubmitStatus(data.correct ? 'correct' : 'wrong');
