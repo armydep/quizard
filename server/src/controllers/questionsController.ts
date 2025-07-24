@@ -129,3 +129,15 @@ export async function showAnswer(req: Request, res: Response) {
   }
   return res.json({ answer: dbQuestion.Answer || '' });
 }
+
+export async function showComments(req: Request, res: Response) {
+  const { questionId } = req.body;
+  if (!questionId) {
+    return res.status(400).json({ error: 'questionId is required.' });
+  }
+  const dbQuestion = await Question.findOne({ QuestionId: questionId });
+  if (!dbQuestion) {
+    return res.status(404).json({ error: 'Question not found.' });
+  }
+  return res.json({ comments: dbQuestion.Comments || 'N/A' });
+}

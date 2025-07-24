@@ -9,5 +9,6 @@ router.get('/random-question', authenticate, questionsController.getRandomQuesti
 router.post('/question-by-keyword', authenticate, questionsController.getQuestionByKeyword);
 router.post('/submit-answer', authenticate, questionsController.submitAnswer);
 router.post('/show-answer', authenticate, questionsController.showAnswer);
+router.post('/show-comments', authenticate, questionsController.showComments);
 
 export default router;

@@ -19,6 +19,9 @@ export default function Home() {
     time,
     revealedAnswer,
     showAnswer,
+    revealedComments,
+    showComments,
+    commentsButtonDisabled,
   } = useQuestion();
 
   return (
@@ -53,7 +56,7 @@ export default function Home() {
               onClick={() => {
                 submitAnswer(getToken() ?? undefined);
               }}
-              disabled={!answer || submitStatus === 'correct'}
+              disabled={!answer || submitStatus === 'correct' || !!revealedAnswer}
               style={{ padding: '0.5rem 1.5rem' }}
             >
               Submit
@@ -64,6 +67,13 @@ export default function Home() {
               disabled={!!revealedAnswer}
             >
               Show Answer
+            </button>
+            <button
+              onClick={() => showComments(getToken() ?? undefined)}
+              style={{ padding: '0.5rem 1.5rem' }}
+              disabled={!question || commentsButtonDisabled}
+            >
+              Comments
             </button>
             {submitStatus === 'correct' && (
               <span style={{ color: 'green' }}>
@@ -81,6 +91,11 @@ export default function Home() {
           {revealedAnswer && (
             <div style={{ marginTop: '1rem', color: '#333', background: '#f0f0f0', padding: '0.75rem', borderRadius: 4 }}>
               <strong>Answer:</strong> {revealedAnswer}
+            </div>
+          )}
+          {revealedComments && (
+            <div style={{ marginTop: '1rem', color: '#333', background: '#e0e0ff', padding: '0.75rem', borderRadius: 4 }}>
+              <strong>Comments:</strong> {revealedComments}
             </div>
           )}
         </div>

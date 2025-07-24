@@ -23,6 +23,24 @@ export function useQuestion() {
   };
   const [tries, setTries] = useState<number | null>(null);
   const [time, setTime] = useState<number | null>(null);
+  const [revealedComments, setRevealedComments] = useState<string | null>(null);
+  const [commentsButtonDisabled, setCommentsButtonDisabled] = useState(false);
+
+  const showComments = async (token?: string) => {
+    if (!questionId) return;
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    const res = await fetch('/api/show-comments', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ questionId }),
+    });
+    const data = await res.json();
+    setRevealedComments(data.comments || null);
+    setCommentsButtonDisabled(true);
+  };
 
   const fetchRandomQuestion = async (token?: string) => {
     const headers: Record<string, string> = {};
@@ -36,6 +54,8 @@ export function useQuestion() {
     setAnswer('');
     setSubmitStatus('idle');
     setRevealedAnswer(null);
+    setRevealedComments(null);
+    setCommentsButtonDisabled(false);
   };
 
   const fetchQuestionByKeywords = async (token?: string) => {
@@ -53,6 +73,8 @@ export function useQuestion() {
     setAnswer('');
     setSubmitStatus('idle');
     setRevealedAnswer(null);
+    setRevealedComments(null);
+    setCommentsButtonDisabled(false);
   };
 
   const submitAnswer = async (token?: string) => {
@@ -96,5 +118,8 @@ export function useQuestion() {
     revealedAnswer,
     showAnswer,
     logout,
+    revealedComments,
+    showComments,
+    commentsButtonDisabled,
   };
 }
