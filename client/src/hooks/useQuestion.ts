@@ -58,24 +58,6 @@ export function useQuestion() {
     setCommentsButtonDisabled(false);
   };
 
-  const fetchQuestionByKeywords = async (token?: string) => {
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-    const res = await fetch('/api/question-by-keyword', {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({ keywords: keywords.split(',').map(k => k.trim()) }),
-    });
-    const data = await res.json();
-    setQuestion(data.question);
-    setAnswer('');
-    setSubmitStatus('idle');
-    setRevealedAnswer(null);
-    setRevealedComments(null);
-    setCommentsButtonDisabled(false);
-  };
 
   const submitAnswer = async (token?: string) => {
     if (!question || !answer) return;
@@ -93,31 +75,23 @@ export function useQuestion() {
     if (data.correct) {
       setTries(typeof data.tries === 'number' ? data.tries : null);
       setTime(typeof data.time === 'number' ? data.time : null);
-    } else {
-      setTries(null);
-      setTime(null);
     }
-  };
-
-  const logout = () => {
-    localStorage.removeItem('jwt');
   };
 
   return {
     question,
+    questionId,
     keywords,
     answer,
     setKeywords,
     setAnswer,
     fetchRandomQuestion,
-    fetchQuestionByKeywords,
     submitAnswer,
     submitStatus,
     tries,
     time,
     revealedAnswer,
     showAnswer,
-    logout,
     revealedComments,
     showComments,
     commentsButtonDisabled,

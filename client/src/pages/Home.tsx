@@ -1,12 +1,15 @@
 import { useQuestion } from '../hooks/useQuestion';
+import { useState } from 'react';
 
 function getToken() {
   return localStorage.getItem('jwt');
 }
 
 export default function Home() {
+  const [likeLoading, setLikeLoading] = useState(false);
   const {
     question,
+    questionId,
     keywords,
     answer,
     setKeywords,
@@ -22,6 +25,23 @@ export default function Home() {
     showComments,
     commentsButtonDisabled,
   } = useQuestion();
+
+  // Like/Dislike handler
+  const handleLikeDislike = async (action: 'like' | 'dislike') => {
+    if (!question) return;
+    setLikeLoading(true);
+    try {
+      await fetch('/api/like', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ questionId, action }),
+      });
+    } catch (e) {
+      // Optionally handle error
+    } finally {
+      setLikeLoading(false);
+    }
+  };
 
   return (
     <div style={{ maxWidth: 600, margin: '2rem auto', padding: '2rem', background: '#fff', borderRadius: 8 }}>
@@ -84,6 +104,10 @@ export default function Home() {
               </span>
             )}
             {submitStatus === 'wrong' && <span style={{ color: 'red' }}>Wrong</span>}
+          </div>
+          <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem' }}>
+            <button onClick={() => handleLikeDislike('like')} disabled={likeLoading} style={{ padding: '0.5rem 1.5rem' }}>Like</button>
+            <button onClick={() => handleLikeDislike('dislike')} disabled={likeLoading} style={{ padding: '0.5rem 1.5rem' }}>Dislike</button>
           </div>
           {revealedAnswer && (
             <div style={{ marginTop: '1rem', color: '#333', background: '#f0f0f0', padding: '0.75rem', borderRadius: 4 }}>

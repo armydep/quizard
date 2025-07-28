@@ -102,8 +102,24 @@ const dbQuestion = await Question.findOne({ QuestionId: questionId });
   // Increment tries
   dbUserQuestion.tries = (dbUserQuestion.tries || 0) + 1;
 
-  // Check answer
-  const isCorrect =  (answer.trim().toLowerCase() === (dbQuestion.Answer || '').trim().toLowerCase());
+  // Semantic answer check via answer-evaluator service
+  let isCorrect = false;
+  let similarity = 0;
+  try {
+    const evalRes = await fetch('http://localhost:8000/evaluate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ expected: dbQuestion.Answer, userAnswer: answer })
+    });
+    const evalData = await evalRes.json();
+    isCorrect = !!evalData.isCorrect;
+    similarity = evalData.similarity;
+  } catch (err) {
+    console.error('Error calling answer-evaluator:', err);
+    // fallback to string match if evaluator fails
+    isCorrect = (answer.trim().toLowerCase() === (dbQuestion.Answer || '').trim().toLowerCase());
+    similarity = isCorrect ? 1 : 0;
+  }
   dbUserQuestion.iscorrect = isCorrect;
   dbUserQuestion.endtime = new Date();
   await dbUserQuestion.save();
@@ -112,9 +128,9 @@ const dbQuestion = await Question.findOne({ QuestionId: questionId });
     if (dbUserQuestion.starttime && dbUserQuestion.endtime) {
       timeTaken = Math.round((dbUserQuestion.endtime.getTime() - dbUserQuestion.starttime.getTime()) / 1000);
     }
-    return res.json({ correct: true, time: timeTaken, tries: dbUserQuestion.tries });
+    return res.json({ correct: true, time: timeTaken, tries: dbUserQuestion.tries, similarity });
   } else {
-    return res.json({ correct: false });
+    return res.json({ correct: false, similarity });
   }
 }
 
@@ -140,4 +156,21 @@ export async function showComments(req: Request, res: Response) {
     return res.status(404).json({ error: 'Question not found.' });
   }
   return res.json({ comments: dbQuestion.Comments || 'N/A' });
+}
+
+export async function likeQuestion(req: Request, res: Response) {
+  const { questionId, action } = req.body;
+  if (!questionId || !['like', 'dislike'].includes(action)) {
+    return res.status(400).json({ error: 'questionId and valid action are required.' });
+  }
+  const updateField = action === 'like' ? { $inc: { _likes: 1 } } : { $inc: { _dislikes: 1 } };
+  const updated = await Question.findOneAndUpdate(
+    { QuestionId: questionId },
+    updateField,
+    { new: true }
+  );
+  if (!updated) {
+    return res.status(404).json({ error: 'Question not found.' });
+  }
+  return res.json({ success: true, _likes: updated._likes, _dislikes: updated._dislikes });
 }
