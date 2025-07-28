@@ -24,3 +24,13 @@ cd ..
 npm install -D concurrently
 npm install
 npm run dev
+
+Answer evaluator:
+cd answer-evaluator
+python3 -m venv venv
+source venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+
+Run:
+uvicorn app:app --host 0.0.0.0 --port 8000
